@@ -4,40 +4,57 @@ import heroImage from "@/assets/hero-image.jpg";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-      {/* Background image with overlay */}
-      <div className="absolute inset-0">
-        <img src={heroImage} alt="Saudi restaurant food content creation" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-espresso/90 via-espresso/70 to-espresso/40" />
-      </div>
+    <section className="relative min-h-screen flex items-center pt-20 bg-background overflow-hidden">
+      <div className="container mx-auto px-6">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Left: Copy */}
+          <div className="space-y-8 animate-fade-up">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif leading-[1.12] text-foreground">
+              Connecting Saudi Restaurants With Local Food Creators —{" "}
+              <span className="text-primary italic">Every Month.</span>
+            </h1>
 
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-2xl space-y-8 animate-fade-up">
-          <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 rounded-full px-4 py-1.5 text-sm text-primary-foreground">
-            <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-            Trusted by 200+ restaurants across Saudi Arabia
+            <p className="text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
+              We match your restaurant with vetted Saudi food creators who visit,
+              create authentic content, and keep your brand visible across social
+              media — consistently.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button size="lg" className="rounded-full px-10 text-base gap-2 group">
+                Get Started
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <a href="#how-it-works">
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="rounded-full px-10 text-base text-foreground hover:bg-muted"
+                >
+                  How It Works
+                </Button>
+              </a>
+            </div>
+
+            <p className="text-sm text-muted-foreground">
+              Trusted by <span className="font-semibold text-foreground">200+ restaurants</span> across Saudi Arabia
+            </p>
           </div>
 
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif leading-[1.1] text-espresso-foreground">
-            Real creators.{" "}
-            <span className="text-primary italic">Real results.</span>
-            <br />
-            For your restaurant.
-          </h1>
-
-          <p className="text-lg md:text-xl text-espresso-foreground/80 max-w-lg leading-relaxed font-light">
-            We connect your restaurant with vetted Saudi food creators who deliver
-            authentic content that drives real foot traffic — month after month.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="rounded-full px-8 text-base gap-2 group">
-              Start Growing Today
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button variant="outline" size="lg" className="rounded-full px-8 text-base border-espresso-foreground/30 text-espresso-foreground hover:bg-espresso-foreground/10">
-              See How It Works
-            </Button>
+          {/* Right: Image */}
+          <div className="relative animate-fade-in hidden lg:block">
+            <div className="rounded-3xl overflow-hidden shadow-2xl border border-border">
+              <img
+                src={heroImage}
+                alt="Saudi food creator capturing restaurant content"
+                className="w-full aspect-[4/3] object-cover"
+              />
+            </div>
+            {/* Floating accent card */}
+            <div className="absolute -bottom-6 -left-6 bg-card border border-border rounded-2xl p-5 shadow-xl">
+              <p className="text-3xl font-serif text-primary">3.2x</p>
+              <p className="text-sm text-muted-foreground font-medium">Average ROI for partners</p>
+            </div>
           </div>
         </div>
       </div>
