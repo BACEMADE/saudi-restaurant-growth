@@ -4,22 +4,55 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { X, MapPin, Clock, User, FileText } from "lucide-react";
 import { creatorVisits, CreatorAssignedVisit } from "@/data/mockCreatorData";
+import { useScheduling, type ScheduledVisit } from "@/context/SchedulingContext";
 import { Link } from "react-router-dom";
 
 const statusColor: Record<string, string> = {
   Pending: "bg-yellow-100 text-yellow-800",
-  Confirmed: "bg-green-100 text-green-800",
+  Confirmed: "bg-emerald-100 text-emerald-800",
   Completed: "bg-blue-100 text-blue-800",
+  Reserved: "bg-amber-100 text-amber-800",
+};
+
+type UnifiedVisit = {
+  id: string;
+  restaurantName: string;
+  restaurantAddress: string;
+  restaurantCity: string;
+  contactPerson: string;
+  date: string;
+  time: string;
+  status: string;
+  deliverables: string[];
+  instructions: string;
 };
 
 const CreatorVisits = () => {
-  const [selectedVisit, setSelectedVisit] = useState<CreatorAssignedVisit | null>(null);
+  const { scheduledVisits } = useScheduling();
+  const [selectedVisit, setSelectedVisit] = useState<UnifiedVisit | null>(null);
 
-  const upcoming = creatorVisits
+  // Merge mock visits with scheduled visits from context
+  const allVisits: UnifiedVisit[] = [
+    ...creatorVisits.map((v) => ({ ...v })),
+    ...scheduledVisits.map((sv): UnifiedVisit => ({
+      id: sv.id,
+      restaurantName: sv.restaurantName,
+      restaurantAddress: sv.restaurantAddress,
+      restaurantCity: sv.restaurantCity,
+      contactPerson: sv.contactPerson,
+      date: sv.date,
+      time: sv.time,
+      status: sv.status,
+      deliverables: sv.deliverables,
+      instructions: sv.notes,
+    })),
+  ];
+
+  const upcoming = allVisits
     .filter((v) => v.status !== "Completed")
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  const completed = creatorVisits.filter((v) => v.status === "Completed");
+  const completed = allVisits.filter((v) => v.status === "Completed");
 
   return (
     <div className="space-y-6">
@@ -49,7 +82,7 @@ const CreatorVisits = () => {
                       {visit.restaurantCity}
                     </div>
                   </div>
-                  <Badge className={statusColor[visit.status]}>{visit.status}</Badge>
+                  <Badge className={statusColor[visit.status] || "bg-muted text-muted-foreground"}>{visit.status}</Badge>
                 </div>
               </CardContent>
             </Card>
@@ -73,7 +106,7 @@ const CreatorVisits = () => {
                           {new Date(visit.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} at {visit.time}
                         </div>
                       </div>
-                      <Badge className={statusColor[visit.status]}>{visit.status}</Badge>
+                      <Badge className={statusColor[visit.status] || "bg-muted text-muted-foreground"}>{visit.status}</Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -109,6 +142,14 @@ const CreatorVisits = () => {
                     {new Date(selectedVisit.date).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })} at {selectedVisit.time}
                   </span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColor[selectedVisit.status] || "bg-muted text-muted-foreground"}>
+                    {selectedVisit.status}
+                  </Badge>
+                  {selectedVisit.status === "Reserved" && (
+                    <span className="text-xs text-muted-foreground">Pending restaurant confirmation</span>
+                  )}
+                </div>
                 <div>
                   <p className="text-sm font-medium text-foreground mb-1">Required Deliverables</p>
                   <div className="flex flex-wrap gap-1.5">
@@ -117,10 +158,12 @@ const CreatorVisits = () => {
                     ))}
                   </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground mb-1">Instructions</p>
-                  <p className="text-sm text-muted-foreground">{selectedVisit.instructions}</p>
-                </div>
+                {selectedVisit.instructions && (
+                  <div>
+                    <p className="text-sm font-medium text-foreground mb-1">Instructions</p>
+                    <p className="text-sm text-muted-foreground">{selectedVisit.instructions}</p>
+                  </div>
+                )}
                 {selectedVisit.status === "Completed" && (
                   <Button asChild className="w-full">
                     <Link to="/creator/submit">Submit Content</Link>

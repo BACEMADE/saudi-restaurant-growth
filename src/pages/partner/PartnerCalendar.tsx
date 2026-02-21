@@ -4,24 +4,53 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { visits, CreatorVisit } from "@/data/mockPartnerData";
+import { useScheduling, type ScheduledVisit } from "@/context/SchedulingContext";
 import { X, CalendarPlus } from "lucide-react";
+
+type UnifiedVisit = {
+  id: string;
+  creatorName: string;
+  creatorHandle: string;
+  date: string;
+  time: string;
+  status: string;
+  deliverables: string[];
+  notes: string;
+};
 
 const statusColor: Record<string, string> = {
   Pending: "bg-amber-100 text-amber-800 border-amber-200",
   Confirmed: "bg-emerald-100 text-emerald-800 border-emerald-200",
   Completed: "bg-blue-100 text-blue-800 border-blue-200",
   Rescheduled: "bg-purple-100 text-purple-800 border-purple-200",
+  Reserved: "bg-amber-100 text-amber-800 border-amber-200",
 };
 
 const PartnerCalendar = () => {
+  const { scheduledVisits } = useScheduling();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedVisit, setSelectedVisit] = useState<CreatorVisit | null>(null);
+  const [selectedVisit, setSelectedVisit] = useState<UnifiedVisit | null>(null);
   const [view, setView] = useState<"month" | "week">("month");
 
-  const visitDates = visits.map((v) => new Date(v.date));
+  // Merge mock partner visits with scheduled visits
+  const allVisits: UnifiedVisit[] = [
+    ...visits.map((v) => ({ ...v })),
+    ...scheduledVisits.map((sv): UnifiedVisit => ({
+      id: sv.id,
+      creatorName: sv.creatorName,
+      creatorHandle: sv.creatorHandle,
+      date: sv.date,
+      time: sv.time,
+      status: sv.status,
+      deliverables: sv.deliverables,
+      notes: sv.notes,
+    })),
+  ];
+
+  const visitDates = allVisits.map((v) => new Date(v.date));
 
   const visitsOnDate = selectedDate
-    ? visits.filter((v) => v.date === selectedDate.toISOString().split("T")[0])
+    ? allVisits.filter((v) => v.date === selectedDate.toISOString().split("T")[0])
     : [];
 
   return (
@@ -52,7 +81,6 @@ const PartnerCalendar = () => {
       </div>
 
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
-        {/* Calendar */}
         <Card>
           <CardContent className="p-4">
             <Calendar
@@ -66,7 +94,6 @@ const PartnerCalendar = () => {
               modifiersClassNames={{ hasVisit: "bg-accent/20 font-bold text-accent" }}
               className="w-full"
             />
-            {/* Visit list for selected date */}
             {selectedDate && (
               <div className="mt-4 border-t border-border pt-4 space-y-2">
                 <p className="text-sm font-medium text-foreground">
@@ -83,7 +110,7 @@ const PartnerCalendar = () => {
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">{v.creatorName}</span>
-                        <Badge variant="outline" className={`text-xs ${statusColor[v.status]}`}>
+                        <Badge variant="outline" className={`text-xs ${statusColor[v.status] || ""}`}>
                           {v.status}
                         </Badge>
                       </div>
@@ -96,7 +123,6 @@ const PartnerCalendar = () => {
           </CardContent>
         </Card>
 
-        {/* Visit details panel */}
         <div>
           {selectedVisit ? (
             <Card>
@@ -112,11 +138,16 @@ const PartnerCalendar = () => {
                   <p className="text-sm text-muted-foreground">{selectedVisit.creatorHandle}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className={statusColor[selectedVisit.status]}>
+                  <Badge variant="outline" className={statusColor[selectedVisit.status] || ""}>
                     {selectedVisit.status}
                   </Badge>
                   <span className="text-sm text-muted-foreground">{selectedVisit.time}</span>
                 </div>
+                {selectedVisit.status === "Reserved" && (
+                  <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
+                    Reserved by {selectedVisit.creatorName} — awaiting your confirmation.
+                  </div>
+                )}
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Deliverables</p>
                   <ul className="space-y-1">
@@ -139,13 +170,12 @@ const PartnerCalendar = () => {
             </Card>
           )}
 
-          {/* Upcoming visits list */}
           <Card className="mt-4">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-sans font-medium">Upcoming Visits</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {visits
+              {allVisits
                 .filter((v) => v.status !== "Completed")
                 .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                 .map((v) => (
@@ -159,7 +189,7 @@ const PartnerCalendar = () => {
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{v.creatorName}</span>
-                      <Badge variant="outline" className={`text-xs ${statusColor[v.status]}`}>
+                      <Badge variant="outline" className={`text-xs ${statusColor[v.status] || ""}`}>
                         {v.status}
                       </Badge>
                     </div>
